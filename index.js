@@ -1,6 +1,12 @@
 var text_input; 
+var globalVars = new Map();
+var integer_list = [];
+var float_list = [];
+var boolean_list = [];
+var string_list = [];
 
-// declaracion multiple ^([\w/!_],?)+:(int|float|bool|string)$
+
+// declaracion multiple ^([\w/!_],?)+:([a-zA-Z])+$
 // asignnacion string   ^[\w/!_]+=(['"].*?['"]\+?|[\w/!_]\+?)+$
 // asignacion operacion ^[\w/!_]+=[\w/!_\d\+-/*/(/)/^]+$
 
@@ -74,14 +80,14 @@ function erase_spaces(index,chain){
 // Get the operation tyoe of the lines
 
 function line_type(input){
-        if(input.match(/^([\w/!_],?)+:(int|float|bool|string)$/)){
-            resolve_multi_declaration(input);
+        if(input.match(/^([\w/!_],?)+:([a-zA-Z])+$/)){
+            resolve_multi_declaration(input.split(/,|:/));
         }
         else if(input.match(/^[\w/!_]+=[\w/!_\d\+-/*/(/)/^]+$/)){
-            resolve_aritmetic_operation(input);
+            resolve_aritmetic_operation(input.split(/=/));
         }
         else if(input.match(/^[\w/!_]+=(['"].*?['"]\+?|[\w/!_]\+?)+$/)){
-            resolve_string_operation(input);
+            resolve_string_operation(input.split(/=/));
         }
         else{
             alert("este codigo que pusiste no sirve mardito marico");
@@ -90,16 +96,104 @@ function line_type(input){
 
 
 function resolve_multi_declaration(input){
-  
+    let vars = input;
+    let data_type_list = dataType(vars.pop());
 
+    if(data_type_list){
+        for(variable of vars){
+            if(globalVars.has(variable)){
+                error_message("var_exist",variable);
+                break;
+            }
+            if(variable.match(/^(int|float|bool|string)$/)){
+                error_message("reserved_name",variable);
+                break;
+            }
+            globalVars.set(variable,null);
+            data_type_list.push(variable);
+        }
+        console.log(globalVars);
+        console.log(data_type_list);
+    }
+    data_type_list = null;
 }
 
 
 function resolve_aritmetic_operation(input){
-
+    let aritmetic_expression = input.pop();
+    let variable = input;
+    parenthesisFinder(aritmetic_expression);
+    
 }
 
 
 function resolve_string_operation(input){
 
+}
+
+
+function dataType(str){
+    switch(str){
+
+        case "int":
+            return integer_list;
+        break;
+        
+        case "float":
+            return float_list;
+        break;
+
+        case "bool":
+            return boolean_list;
+        break;
+
+        case "string":
+            return string_list;
+        break;
+
+        default:
+            error_message("invalid_data_type",str);
+            return false;
+        break;
+    }
+}
+
+
+function error_message(error_type,error){
+    switch(error_type){
+
+        case "var_exist":
+            console.log(`The variable:(${error}) is already defined`);
+        break;
+
+        case "reserved_name":
+            console.log(`The variable:(${error}) has a reserved name`);
+        break;
+
+        case "invalid_data_type":
+            console.log(`(${error}) is not a valid data type`);
+        break;
+    }
+}
+
+
+function parenthesisFinder(expression){
+
+    let ParenthesisFinded = []
+
+    for(let i = 0 ;i<expression.length;i++){
+        if(expression[i]==="("){
+            let x = i+1;
+            while(expression[x]!==")"){
+                if(expression[x]==="("){
+                    i=x;
+                }
+                x++
+            }
+            console.log(expression.substring(i+1,x))
+        }
+    }
+
+
+    return ParenthesisFinded;
 }
